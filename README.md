@@ -57,8 +57,7 @@ This repository serves as a comprehensive demonstration for:
 | **IaC**        | Terraform          | Modular structure, 7 organized files           |
 
 ### Architecture Diagram
-
-![AWS Security Demo Architecture](aws_security_demo_architecture.png)
+![Architecture Diagram](architecture-diagram/architecture-diagram.png)
 
 *Complete architecture showing all 11 endpoints, Lambda functions, DynamoDB tables, and security gaps*
 
