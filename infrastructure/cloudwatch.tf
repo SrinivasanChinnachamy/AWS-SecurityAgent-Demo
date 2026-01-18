@@ -110,7 +110,7 @@ resource "aws_cloudwatch_log_group" "get_user_orders_log_group" {
 
 resource "aws_cloudwatch_log_group" "process_payment_log_group" {
   name              = "/aws/lambda/${var.environment}-process-payment-function"
-  retention_in_days = 2555  # ISSUE: 7 years - compliance overkill without proper controls
+  retention_in_days = 60  # ISSUE: 7 years - compliance overkill without proper controls
 
   tags = {
     Environment = var.environment

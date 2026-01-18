@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get the AWS SecurityAgent Demo up and running in under 10 minutes.
+Get the AWS SecurityAgent Demo up and running in under 15 minutes.
 
 ## Prerequisites
 
@@ -10,7 +10,6 @@ Before you begin, ensure you have:
 - ✅ AWS CLI installed and configured
 - ✅ Terraform >= 1.0 installed
 - ✅ Python 3.11 (for local testing)
-- ✅ `jq` command-line tool (for test scripts)
 - ✅ `zip` utility (for Lambda packaging)
 
 ## Installation Steps
@@ -32,89 +31,83 @@ aws configure
 aws sts get-caller-identity
 ```
 
-### 3. Set Up Terraform Variables
+### 3. Package Lambda Functions
 
 ```bash
-cd infrastructure
-
-# Copy the example variables file
-cp terraform.tfvars.example terraform.tfvars
-
-# Edit terraform.tfvars with your preferred settings
-# Default values work fine for most cases
-```
-
-### 4. Deploy Using the Automated Script
-
-```bash
-# Return to project root
-cd ..
-
-# Run the deployment script
-./scripts/deploy.sh demo us-east-1
-```
-
-The script will:
-- Package Lambda functions
-- Initialize Terraform
-- Deploy all infrastructure
-- Output the API endpoint URL
-
-### 5. Test the Deployment
-
-```bash
-# Get the API endpoint
-cd infrastructure
-API_ENDPOINT=$(terraform output -raw api_endpoint)
-
-# Run automated tests
-cd ..
-./scripts/test-api.sh $API_ENDPOINT
-```
-
-## Manual Deployment (Alternative)
-
-If you prefer manual control:
-
-### Step 1: Package Lambda Functions
-
-```bash
-# Create deployment package
-zip -j lambda_deployment.zip src/*.py
+# Create deployment package with all 11 Lambda functions
+zip -j lambda_deployment.zip \
+  src/get_user.py \
+  src/create_user.py \
+  src/update_user.py \
+  src/delete_user.py \
+  src/list_users.py \
+  src/list_products.py \
+  src/get_product.py \
+  src/create_order.py \
+  src/get_user_orders.py \
+  src/process_payment.py \
+  src/get_transactions.py
 
 # Move to infrastructure directory
 mv lambda_deployment.zip infrastructure/
 ```
 
-### Step 2: Initialize Terraform
+### 4. Deploy Infrastructure
 
 ```bash
 cd infrastructure
+
+# Initialize Terraform
 terraform init
+
+# Review the plan
+terraform plan
+
+# Deploy (type 'yes' when prompted)
+terraform apply
 ```
 
-### Step 3: Review the Plan
+### 5. Update Lambda Function Code
 
 ```bash
-terraform plan -var="environment=demo" -var="aws_region=us-east-1"
+# Get function names from Terraform outputs
+GET_USER_FUNCTION=$(terraform output -raw get_user_function_name)
+CREATE_USER_FUNCTION=$(terraform output -raw create_user_function_name)
+UPDATE_USER_FUNCTION=$(terraform output -raw update_user_function_name)
+DELETE_USER_FUNCTION=$(terraform output -raw delete_user_function_name)
+LIST_USERS_FUNCTION=$(terraform output -raw list_users_function_name)
+LIST_PRODUCTS_FUNCTION=$(terraform output -raw list_products_function_name)
+GET_PRODUCT_FUNCTION=$(terraform output -raw get_product_function_name)
+CREATE_ORDER_FUNCTION=$(terraform output -raw create_order_function_name)
+GET_USER_ORDERS_FUNCTION=$(terraform output -raw get_user_orders_function_name)
+PROCESS_PAYMENT_FUNCTION=$(terraform output -raw process_payment_function_name)
+GET_TRANSACTIONS_FUNCTION=$(terraform output -raw get_transactions_function_name)
+
+# Update all Lambda functions with the deployment package
+aws lambda update-function-code --function-name $GET_USER_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $CREATE_USER_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $UPDATE_USER_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $DELETE_USER_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $LIST_USERS_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $LIST_PRODUCTS_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $GET_PRODUCT_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $CREATE_ORDER_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $GET_USER_ORDERS_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $PROCESS_PAYMENT_FUNCTION --zip-file fileb://lambda_deployment.zip
+aws lambda update-function-code --function-name $GET_TRANSACTIONS_FUNCTION --zip-file fileb://lambda_deployment.zip
+
+echo "✅ All Lambda functions updated successfully!"
 ```
 
-### Step 4: Deploy Infrastructure
+### 6. Get API Endpoint
 
 ```bash
-terraform apply -var="environment=demo" -var="aws_region=us-east-1"
-```
+# Display the API endpoint
+terraform output api_endpoint
 
-Type `yes` when prompted to confirm deployment.
-
-### Step 5: Get API Endpoint
-
-```bash
-# Display all outputs
-terraform output
-
-# Get just the API endpoint
-terraform output -raw api_endpoint
+# Save to environment variable for testing
+export API_ENDPOINT=$(terraform output -raw api_endpoint)
+echo "API Endpoint: $API_ENDPOINT"
 ```
 
 ## Testing the API
@@ -221,10 +214,10 @@ When you're done testing:
 cd infrastructure
 
 # Destroy all resources
-terraform destroy -var="environment=demo" -var="aws_region=us-east-1"
-```
+terraform destroy
 
-Type `yes` when prompted to confirm destruction.
+# Type 'yes' when prompted to confirm
+```
 
 ## Troubleshooting
 
@@ -269,6 +262,7 @@ terraform output api_endpoint
 **Solution**: The demo includes over-provisioned resources intentionally. Clean up promptly:
 
 ```bash
+cd infrastructure
 terraform destroy
 ```
 
