@@ -1,0 +1,220 @@
+name: Deploy User API with Terraform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  TF_VERSION: 1.6.0
+
+jobs:
+  # ISSUE: No security scanning
+  # ISSUE: No dependency vulnerability check
+  
+  terraform-plan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: infrastructure
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: infrastructure
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: infrastructure
+        run: terraform plan -var-file="terraform.tfvars"
+        # ISSUE: No plan review process
+        # ISSUE: No cost estimation
+
+  terraform-apply:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Package Lambda functions
+        run: |
+          # Create deployment package with all Lambda functions for enterprise API
+          zip -j lambda_deployment.zip \
+            src/get_user.py \
+            src/create_user.py \
+            src/update_user.py \
+            src/delete_user.py \
+            src/list_users.py \
+            src/list_products.py \
+            src/get_product.py \
+            src/create_order.py \
+            src/get_user_orders.py \
+            src/process_payment.py \
+            src/get_transactions.py
+          mv lambda_deployment.zip infrastructure/
+          # ISSUE: No dependency installation
+          # ISSUE: No package optimization
+          # ISSUE: All functions in single package - no separation of concerns
+          # ISSUE: Financial functions mixed with user management functions
+
+      - name: Terraform Init
+        working-directory: infrastructure
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: infrastructure
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        # ISSUE: Auto-approve without review
+        # ISSUE: No rollback mechanism
+
+      - name: Update Lambda function codes
+        run: |
+          echo "🔄 Updating Lambda function codes..."
+          
+          # Get function names from Terraform outputs with error handling
+          echo "Getting function names from Terraform outputs..."
+          GET_USER_FUNCTION=$(cd infrastructure && terraform output -raw get_user_function_name)
+          CREATE_USER_FUNCTION=$(cd infrastructure && terraform output -raw create_user_function_name)
+          UPDATE_USER_FUNCTION=$(cd infrastructure && terraform output -raw update_user_function_name)
+          DELETE_USER_FUNCTION=$(cd infrastructure && terraform output -raw delete_user_function_name)
+          LIST_USERS_FUNCTION=$(cd infrastructure && terraform output -raw list_users_function_name)
+          LIST_PRODUCTS_FUNCTION=$(cd infrastructure && terraform output -raw list_products_function_name)
+          GET_PRODUCT_FUNCTION=$(cd infrastructure && terraform output -raw get_product_function_name)
+          CREATE_ORDER_FUNCTION=$(cd infrastructure && terraform output -raw create_order_function_name)
+          GET_USER_ORDERS_FUNCTION=$(cd infrastructure && terraform output -raw get_user_orders_function_name)
+          PROCESS_PAYMENT_FUNCTION=$(cd infrastructure && terraform output -raw process_payment_function_name)
+          GET_TRANSACTIONS_FUNCTION=$(cd infrastructure && terraform output -raw get_transactions_function_name)
+          
+          echo "Function names retrieved successfully"
+          
+          # Update all function codes with error handling
+          echo "Updating Lambda functions..."
+          aws lambda update-function-code --function-name $GET_USER_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $CREATE_USER_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $UPDATE_USER_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $DELETE_USER_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $LIST_USERS_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $LIST_PRODUCTS_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $GET_PRODUCT_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $CREATE_ORDER_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $GET_USER_ORDERS_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $PROCESS_PAYMENT_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          aws lambda update-function-code --function-name $GET_TRANSACTIONS_FUNCTION --zip-file fileb://infrastructure/lambda_deployment.zip
+          
+          echo "✅ All Lambda functions updated successfully!"
+          # ISSUE: No deployment validation for any function
+          # ISSUE: No rollback mechanism if any function fails
+          # ISSUE: No health checks after deployment
+
+      - name: Add sample data and test endpoints
+        run: |
+          # Get API endpoint from Terraform outputs
+          API_ENDPOINT=$(cd infrastructure && terraform output -raw api_endpoint)
+          
+          # Get table names using consistent naming pattern
+          ENVIRONMENT="demo"  # Default environment from terraform.tfvars
+          USERS_TABLE="$ENVIRONMENT-users-table"
+          PRODUCTS_TABLE="$ENVIRONMENT-products-table"
+          ORDERS_TABLE="$ENVIRONMENT-orders-table"
+          TRANSACTIONS_TABLE="$ENVIRONMENT-transactions-table"
+          
+          echo "Adding sample data to tables..."
+          echo "Users table: $USERS_TABLE"
+          echo "Products table: $PRODUCTS_TABLE"
+          echo "Orders table: $ORDERS_TABLE"
+          echo "Transactions table: $TRANSACTIONS_TABLE"
+          
+          # Add sample users
+          aws dynamodb put-item --table-name $USERS_TABLE --item '{"userId":{"S":"user123"},"name":{"S":"John Doe"},"email":{"S":"john@example.com"},"status":{"S":"active"},"createdAt":{"S":"2024-01-01T00:00:00Z"}}'
+          aws dynamodb put-item --table-name $USERS_TABLE --item '{"userId":{"S":"user456"},"name":{"S":"Jane Smith"},"email":{"S":"jane@example.com"},"status":{"S":"active"},"createdAt":{"S":"2024-01-01T00:00:00Z"}}'
+          aws dynamodb put-item --table-name $USERS_TABLE --item '{"userId":{"S":"user789"},"name":{"S":"Bob Wilson"},"email":{"S":"bob@example.com"},"status":{"S":"inactive"},"createdAt":{"S":"2024-01-01T00:00:00Z"}}'
+
+          # Add sample products
+          aws dynamodb put-item --table-name $PRODUCTS_TABLE --item '{"productId":{"S":"prod001"},"name":{"S":"Laptop Pro"},"category":{"S":"electronics"},"price":{"N":"1299.99"},"stock":{"N":"50"},"description":{"S":"High-performance laptop"}}'
+          aws dynamodb put-item --table-name $PRODUCTS_TABLE --item '{"productId":{"S":"prod002"},"name":{"S":"Wireless Mouse"},"category":{"S":"electronics"},"price":{"N":"29.99"},"stock":{"N":"200"},"description":{"S":"Ergonomic wireless mouse"}}'
+          aws dynamodb put-item --table-name $PRODUCTS_TABLE --item '{"productId":{"S":"prod003"},"name":{"S":"Office Chair"},"category":{"S":"furniture"},"price":{"N":"299.99"},"stock":{"N":"25"},"description":{"S":"Comfortable office chair"}}'
+
+          # Add sample orders
+          aws dynamodb put-item --table-name $ORDERS_TABLE --item '{"orderId":{"S":"order001"},"userId":{"S":"user123"},"totalAmount":{"N":"1329.98"},"orderStatus":{"S":"completed"},"createdAt":{"S":"2024-01-01T10:00:00Z"}}'
+          aws dynamodb put-item --table-name $ORDERS_TABLE --item '{"orderId":{"S":"order002"},"userId":{"S":"user456"},"totalAmount":{"N":"299.99"},"orderStatus":{"S":"pending"},"createdAt":{"S":"2024-01-02T14:30:00Z"}}'
+
+          # Add sample transactions
+          aws dynamodb put-item --table-name $TRANSACTIONS_TABLE --item '{"transactionId":{"S":"txn001"},"orderId":{"S":"order001"},"userId":{"S":"user123"},"amount":{"N":"1329.98"},"status":{"S":"completed"},"timestamp":{"S":"2024-01-01T10:05:00Z"}}'
+          
+          echo "✅ Sample data added successfully!"
+
+      - name: Output API endpoints and test commands
+        run: |
+          API_ENDPOINT=$(cd infrastructure && terraform output -raw api_endpoint)
+          echo "🌐 Enterprise E-Commerce API Endpoints:"
+          echo ""
+          echo "👥 USER MANAGEMENT:"
+          echo "📋 List Users: curl $API_ENDPOINT/users"
+          echo "👤 Get User: curl $API_ENDPOINT/users/user123"
+          echo "➕ Create User: curl -X POST $API_ENDPOINT/users -H 'Content-Type: application/json' -d '{\"name\":\"Test User\",\"email\":\"test@example.com\"}'"
+          echo "✏️ Update User: curl -X PUT $API_ENDPOINT/users/user123 -H 'Content-Type: application/json' -d '{\"name\":\"Updated Name\"}'"
+          echo "🗑️ Delete User: curl -X DELETE $API_ENDPOINT/users/user123"
+          echo ""
+          echo "🛍️ PRODUCT CATALOG:"
+          echo "📦 List Products: curl $API_ENDPOINT/products"
+          echo "🔍 Get Product: curl $API_ENDPOINT/products/prod001"
+          echo "🏷️ Filter by Category: curl '$API_ENDPOINT/products?category=electronics'"
+          echo ""
+          echo "📋 ORDER MANAGEMENT:"
+          echo "🛒 Create Order: curl -X POST $API_ENDPOINT/orders -H 'Content-Type: application/json' -d '{\"userId\":\"user123\",\"items\":[{\"productId\":\"prod001\",\"quantity\":1}]}'"
+          echo "📄 Get User Orders: curl $API_ENDPOINT/users/user123/orders"
+          echo ""
+          echo "💳 PAYMENT PROCESSING:"
+          echo "💰 Process Payment: curl -X POST $API_ENDPOINT/orders/order002/payment -H 'Content-Type: application/json' -d '{\"userId\":\"user456\",\"amount\":299.99,\"paymentMethod\":\"credit_card\",\"cardNumber\":\"4111111111111111\"}'"
+          echo "📊 Get Transactions: curl $API_ENDPOINT/transactions"
+          echo "🔍 Filter Transactions: curl '$API_ENDPOINT/transactions?userId=user123'"
+          echo ""
+          # ISSUE: No automated testing of deployed APIs
+          # ISSUE: No health checks for any endpoint
+          # ISSUE: No performance validation
+          # ISSUE: No security testing of authentication bypass
+          # ISSUE: No PCI compliance testing for payment endpoints
+          # ISSUE: No load testing for enterprise-scale operations
+
+  # MISSING JOBS:
+  # - Security scanning (tfsec, checkov)
+  # - Load testing
+  # - Integration testing
+  # - Rollback capability
