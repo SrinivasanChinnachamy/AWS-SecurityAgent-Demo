@@ -1,19 +1,92 @@
-# AWS-SecurityAgent-Demo
+# AWS SecurityAgent Demo 🔐
 
-This repository holds infrastructure and application code for a demo application that has intentional issues at code level to be reviewed by AWS Security Frontier Agent.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Terraform](https://img.shields.io/badge/Terraform-1.0+-purple.svg)](https://www.terraform.io/)
+[![AWS](https://img.shields.io/badge/AWS-Serverless-orange.svg)](https://aws.amazon.com/)
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 
-## Enterprise E-Commerce Platform
+> **⚠️ WARNING**: This repository contains **100+ intentional security vulnerabilities** for educational purposes. Never deploy this code in production environments.
+
+An enterprise-scale e-commerce platform intentionally designed with security vulnerabilities to demonstrate AWS Security Agent's capabilities in detecting, analyzing, and prioritizing security issues across infrastructure, application code, and CI/CD pipelines.
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Business Domains](#business-domains--endpoints)
+- [Security Vulnerabilities](#intentional-security-issues-by-category)
+- [Infrastructure Organization](#infrastructure-organization-terraform-best-practices)
+- [Getting Started](#getting-started)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
+## 🎯 Overview
 
 This demo simulates a comprehensive enterprise e-commerce platform with multiple business domains, intentionally designed with **100+ security vulnerabilities and operational issues** across infrastructure, application code, and CI/CD pipeline.
 
-### Architecture Overview
-- **API Gateway**: REST API with 11 endpoints across 4 business domains
-- **Lambda Functions**: 11 separate functions handling different business operations
-- **DynamoDB**: 4 tables with mixed billing modes and capacity issues
-- **CloudWatch**: Logging with wildly inconsistent retention policies (1 day to 7 years)
-- **IAM**: Single overly permissive role accessing all business data
+### Why This Project?
 
-### Business Domains & Endpoints
+This repository serves as a comprehensive demonstration for:
+- **Security Professionals**: Understanding enterprise-scale vulnerability detection
+- **DevOps Engineers**: Learning AWS security best practices through anti-patterns
+- **Solution Architects**: Analyzing cross-domain security issues
+- **AWS Security Agent**: Showcasing automated security assessment capabilities
+
+### Key Statistics
+
+- 🔴 **100+ Security Vulnerabilities** across 6 categories
+- 🏗️ **11 Lambda Functions** handling business logic
+- 🌐 **11 API Endpoints** with no authentication
+- 💾 **4 DynamoDB Tables** with mixed configurations
+- 📊 **Inconsistent Monitoring** (1 day to 7 years log retention)
+- 💰 **Cost Optimization Issues** (over/under-provisioned resources)
+
+## 🏛️ Architecture
+
+### Technology Stack
+
+| Component | Technology | Configuration |
+|-----------|-----------|---------------|
+| **API Layer** | Amazon API Gateway | REST API, 11 endpoints, no authentication ⚠️ |
+| **Compute** | AWS Lambda | 11 functions, Python 3.11, varying resources |
+| **Database** | Amazon DynamoDB | 4 tables, mixed billing modes |
+| **Monitoring** | Amazon CloudWatch | Inconsistent retention (1 day - 7 years) ⚠️ |
+| **IAM** | AWS IAM | Single overly-permissive role ⚠️ |
+| **IaC** | Terraform | Modular structure, 7 organized files |
+
+### Architecture Diagram
+
+![AWS Security Demo Architecture](aws_security_demo_architecture.png)
+
+*Complete architecture showing all 11 endpoints, Lambda functions, DynamoDB tables, and security gaps*
+
+## 📁 Infrastructure Organization (Terraform Best Practices)
+The infrastructure code follows Terraform best practices with modular organization:
+
+```
+infrastructure/
+├── main.tf                 # Main orchestration and documentation
+├── providers.tf           # Terraform and AWS provider configuration
+├── variables.tf           # Input variables and defaults
+├── outputs.tf             # Output values and API endpoints
+├── terraform.tfvars       # Environment-specific values
+├── dynamodb.tf            # DynamoDB tables and GSI configurations
+├── iam.tf                 # IAM roles, policies, and attachments
+├── lambda.tf              # Lambda functions and environment variables
+├── api_gateway.tf         # API Gateway resources, methods, and integrations
+├── lambda_permissions.tf  # Lambda-API Gateway integration permissions
+└── cloudwatch.tf          # CloudWatch log groups and retention policies
+```
+
+**Benefits of Modular Structure:**
+- **Maintainability**: Easier to locate and modify specific resource types
+- **Readability**: Clear separation of concerns across AWS services
+- **Collaboration**: Multiple team members can work on different modules
+- **Security Review**: Simplified security assessment by service category
+- **Debugging**: Faster troubleshooting with focused resource groupings
+
+## 🛒 Business Domains & Endpoints
 
 #### 👥 User Management
 - `GET /users` - List all users (with pagination)
@@ -34,45 +107,9 @@ This demo simulates a comprehensive enterprise e-commerce platform with multiple
 - `POST /orders/{orderId}/payment` - Process payment (PCI nightmare)
 - `GET /transactions` - Access all financial transactions
 
-### AWS MCP Integration & Security Analysis
+## 🚨 Intentional Security Issues by Category
 
-This demo is designed to work with AWS Model Context Protocol (MCP) servers for comprehensive security analysis:
-
-#### � AWS Documentation MCP Server
-The AWS Security Agent can leverage the [AWS Documentation MCP Server](https://github.com/awslabs/aws-documentation-mcp-server) to:
-- **Search AWS Security Best Practices**: Query official AWS security documentation for each service
-- **Reference Compliance Guidelines**: Access AWS compliance documentation for PCI DSS, SOX, and GDPR requirements
-- **Validate Configuration Standards**: Compare current configurations against AWS Well-Architected Framework security pillar
-
-**Example MCP Usage:**
-```bash
-# The agent can search for security best practices
-search_documentation("DynamoDB encryption at rest best practices")
-search_documentation("API Gateway authentication methods")
-search_documentation("Lambda function security configuration")
-```
-
-#### 📊 AWS Pricing MCP Server
-The [AWS Pricing MCP Server](https://github.com/awslabs/aws-pricing-mcp-server) enables cost-security analysis:
-- **Identify Over-Provisioning**: Detect expensive misconfigurations (like our 100 RCU transactions table)
-- **Cost-Benefit Security Analysis**: Evaluate security improvements against cost implications
-- **Resource Right-Sizing**: Optimize security configurations for cost efficiency
-
-**Example MCP Usage:**
-```bash
-# Analyze DynamoDB pricing for different capacity configurations
-get_pricing("AmazonDynamoDB", region="us-east-1", filters=[
-    {"Field": "capacityType", "Value": "Provisioned"}
-])
-```
-
-#### 🏗️ AWS Diagram MCP Server
-The [AWS Diagram MCP Server](https://github.com/awslabs/aws-diagram-mcp-server) can visualize security issues:
-- **Architecture Security Diagrams**: Generate visual representations of security vulnerabilities
-- **Data Flow Analysis**: Show how sensitive data flows through insecure components
-- **Compliance Gap Visualization**: Illustrate missing security controls across the architecture
-
-### Intentional Security Issues by Category
+All vulnerabilities are mapped to official AWS security best practices documentation.
 
 #### 🔐 Authentication & Authorization (15+ issues)
 **Violates AWS API Gateway Security Best Practices:**
@@ -82,17 +119,18 @@ The [AWS Diagram MCP Server](https://github.com/awslabs/aws-diagram-mcp-server) 
 - **Financial data publicly accessible** - Critical compliance violation against AWS security guidelines
 - **No admin role validation** - Missing role-based access controls
 
-*Reference: [AWS API Gateway Security Best Practices](https://docs.aws.amazon.com/apigateway/latest/developerguide/security-best-practices.html) - AWS recommends implementing least privilege access, controlling API access through IAM policies, Lambda authorizers, IAM tags, VPC endpoint policies, and Amazon Cognito user pools.*
+*Reference: [AWS API Gateway Security Best Practices](https://docs.aws.amazon.com/apigateway/latest/developerguide/security-best-practices.html) - AWS recommends implementing least privilege access, controlling API access through IAM policies, Lambda authorizers, IAM tags, VPC endpoint policies, and Amazon Cognito user pools. AWS also recommends implementing CloudWatch alarms for monitoring metrics over time, enabling AWS CloudTrail for audit logging, and using AWS Config for compliance validation.*
 
 #### 🛡️ Data Security (20+ issues)
 **Violates AWS DynamoDB Security Best Practices:**
-- **No encryption at rest or in transit** - AWS DynamoDB security best practices emphasize both preventative and detective security measures including encryption
+- **No encryption at rest or in transit** - AWS DynamoDB security best practices emphasize encryption at rest using AWS KMS keys and encryption in transit
 - **Payment card data in plain text logs** - Severe PCI DSS compliance violation and AWS logging security failure
 - **No PCI DSS compliance measures** - Missing required financial data protection controls
 - **Financial data mixed with user data** - Violates AWS data classification and separation principles
 - **No data masking or field filtering** - Exposes sensitive information unnecessarily
+- **No client-side encryption** - AWS recommends considering client-side encryption for sensitive data using AWS Database Encryption SDK
 
-*Reference: [AWS DynamoDB Security Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security.html) - AWS provides comprehensive security features and recommends implementing both preventative and detective security measures for DynamoDB workloads.*
+*Reference: [AWS DynamoDB Security Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices-security-preventative.html) - AWS provides comprehensive security features including encryption at rest with AWS KMS, IAM roles for authentication, IAM policies for fine-grained access control, VPC endpoints for network security, and client-side encryption for sensitive data protection.*
 
 #### ⚡ Infrastructure Misconfigurations (25+ issues)
 **Violates AWS DynamoDB Best Practices:**
@@ -101,8 +139,9 @@ The [AWS Diagram MCP Server](https://github.com/awslabs/aws-diagram-mcp-server) 
 - **Mixed billing modes across tables** - Inconsistent capacity management strategy across business domains
 - **No auto-scaling policies** - Missing dynamic capacity adjustment recommended by AWS
 - **Inconsistent log retention (1 day to 7 years)** - Poor operational governance and compliance management
+- **No VPC endpoints** - Missing network security controls recommended for DynamoDB access
 
-*Reference: [AWS DynamoDB Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html) - AWS recommends optimizing DynamoDB workloads with proper partition key design, capacity planning, and consistent configuration across tables.*
+*Reference: [AWS DynamoDB Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html) - AWS recommends optimizing DynamoDB workloads with proper partition key design, capacity planning, consistent configuration across tables, and using VPC endpoints for secure access.*
 
 #### 🔧 Application Security (20+ issues)
 **Violates AWS Lambda Best Practices:**
@@ -111,8 +150,10 @@ The [AWS Diagram MCP Server](https://github.com/awslabs/aws-diagram-mcp-server) 
 - **No retry logic or circuit breakers** - Poor resilience patterns against AWS Lambda best practices
 - **Cross-table access without validation** - Overly broad data access violating principle of least privilege
 - **No fraud detection on payments** - Missing financial security controls for payment processing
+- **Overly permissive IAM roles** - Single role with excessive permissions violating least privilege principle
+- **No environment variable encryption** - Missing security for configuration data
 
-*Reference: [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html) - AWS recommends initializing SDK clients outside handlers, using environment variables for configuration, implementing proper error handling, avoiding recursive invocations, and following security best practices including restrictive IAM permissions.*
+*Reference: [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html) - AWS recommends initializing SDK clients outside handlers, using environment variables for configuration, implementing proper error handling, avoiding recursive invocations, using most-restrictive IAM permissions, writing idempotent code, and implementing structured JSON logging for better observability.*
 
 #### 📊 Monitoring & Observability (15+ issues)
 **Violates AWS CloudWatch and Security Best Practices:**
@@ -121,8 +162,10 @@ The [AWS Diagram MCP Server](https://github.com/awslabs/aws-diagram-mcp-server) 
 - **No custom metrics** - Missing business-specific monitoring and operational insights
 - **No audit logging for financial access** - Compliance and security gap violating AWS audit requirements
 - **No performance monitoring** - Missing operational insights and performance optimization
+- **No structured JSON logging** - Missing observability best practices recommended by AWS
+- **No Cost Anomaly Detection** - Missing cost monitoring recommended by AWS
 
-*Reference: [AWS API Gateway Security Best Practices](https://docs.aws.amazon.com/apigateway/latest/developerguide/security-best-practices.html) - AWS recommends implementing CloudWatch alarms for monitoring metrics over time, enabling AWS CloudTrail for audit logging, and using AWS Config for compliance validation and resource monitoring.*
+*Reference: [AWS API Gateway Security Best Practices](https://docs.aws.amazon.com/apigateway/latest/developerguide/security-best-practices.html) and [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html) - AWS recommends implementing CloudWatch alarms for monitoring metrics over time, enabling AWS CloudTrail for audit logging, using AWS Config for compliance validation, implementing structured JSON logging, and using Cost Anomaly Detection for unusual activity monitoring.*
 
 #### 🚀 CI/CD Security (10+ issues)
 **Violates AWS Security and Deployment Best Practices:**
@@ -131,25 +174,30 @@ The [AWS Diagram MCP Server](https://github.com/awslabs/aws-diagram-mcp-server) 
 - **No dependency checks** - Potential supply chain vulnerabilities in Lambda functions
 - **All functions in single package** - Poor separation of concerns violating AWS Lambda best practices
 - **No rollback mechanisms** - Missing deployment safety measures and error recovery
+- **No Infrastructure as Code security scanning** - Missing Terraform security validation
+- **No AWS Config compliance monitoring** - Missing resource configuration validation
 
-*Reference: [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html) - AWS recommends proper function packaging, security scanning, dependency management, and implementing deployment safety measures including rollback capabilities for production workloads.*
+*Reference: [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html) and [AWS API Gateway Security Best Practices](https://docs.aws.amazon.com/apigateway/latest/developerguide/security-best-practices.html) - AWS recommends proper function packaging, security scanning, dependency management, implementing deployment safety measures including rollback capabilities, using AWS Config for compliance validation, and enabling AWS Security Hub CSPM for security monitoring.*
 
-### Enterprise Complexity Factors
+## ⚙️ Enterprise Complexity Factors
 - **Cross-Domain Data Access**: User functions can access financial data - violates AWS principle of least privilege
 - **Inconsistent Resource Allocation**: Memory ranges from 128MB to 3GB - poor resource optimization against AWS cost guidelines
 - **Mixed Security Postures**: Some tables provisioned, others on-demand - inconsistent governance violating AWS operational excellence
 - **Financial Compliance Gaps**: No SOX, PCI, or GDPR controls - regulatory violations against AWS compliance frameworks
 - **Operational Inconsistencies**: Timeout ranges from 15s to 180s - poor standardization violating AWS operational best practices
 
-### AWS Well-Architected Framework Violations
+## 🏗️ AWS Well-Architected Framework Violations
 
 This demo violates multiple pillars of the AWS Well-Architected Framework based on official AWS documentation:
 
 #### Security Pillar
 - **Identity and Access Management**: No authentication or authorization mechanisms
-- **Detective Controls**: Missing logging, monitoring, and audit capabilities
+- **Detective Controls**: Missing logging, monitoring, and audit capabilities  
 - **Data Protection**: No encryption, data classification, or protection measures
 - **Incident Response**: No security event handling or response procedures
+- **Infrastructure Protection**: Missing network security and VPC configurations
+
+*Reference: [AWS Well-Architected Security Pillar](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html)*
 
 #### Reliability Pillar
 - **Foundations**: Poor capacity planning and inconsistent resource allocation
@@ -166,48 +214,25 @@ This demo violates multiple pillars of the AWS Well-Architected Framework based 
 - **Cost-Effective Resources**: Inefficient resource allocation and sizing
 - **Manage Demand**: No auto-scaling, capacity management, or demand-based scaling
 
-### AWS MCP Server Configuration
+#### Operational Excellence Pillar
+- **Prepare**: Missing operational procedures and documentation
+- **Operate**: No monitoring, alerting, or incident response capabilities
+- **Evolve**: No continuous improvement or lessons learned processes
 
-To analyze this demo with AWS MCP servers, configure your MCP client with:
+## 🎓 Educational Purpose
 
-```json
-{
-  "mcpServers": {
-    "aws-docs": {
-      "command": "uvx",
-      "args": ["awslabs.aws-documentation-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
-    },
-    "aws-pricing": {
-      "command": "uvx", 
-      "args": ["awslabs.aws-pricing-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
-    },
-    "aws-diagrams": {
-      "command": "uvx",
-      "args": ["awslabs.aws-diagram-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
-    }
-  }
-}
-```
-
-### Purpose
-Designed to demonstrate AWS Security Frontier Agent's capabilities in:
-1. **Detecting** complex, enterprise-scale security vulnerabilities using AWS MCP documentation
-2. **Analyzing** cross-domain security issues and data flows with architectural diagrams
+This project demonstrates AWS Security Agent's capabilities in:
+1. **Detecting** complex, enterprise-scale security vulnerabilities 
+2. **Analyzing** cross-domain security issues and data flows 
 3. **Prioritizing** fixes based on business impact and compliance requirements from AWS best practices
 4. **Recommending** comprehensive security architecture improvements backed by official AWS documentation
 5. **Identifying** financial and regulatory compliance gaps using AWS compliance guidelines
 6. **Cost-optimizing** security improvements using AWS pricing analysis
+7. **Implementing** AWS Well-Architected Framework principles across all five pillars
 
-### Getting Started
+*All security violations reference current AWS official documentation including API Gateway Security Best Practices, DynamoDB Security Best Practices, Lambda Best Practices, and the AWS Well-Architected Framework Security Pillar.*
+
+## 🚀 Getting Started
 
 #### Quick Deployment (MVP)
 
@@ -277,7 +302,16 @@ terraform plan -var="environment=demo" -var="aws_region=us-east-1"
 terraform apply -var="environment=demo" -var="aws_region=us-east-1"
 ```
 
-### Security Analysis Workflow
+**Infrastructure Files Overview**:
+- `main.tf`: Orchestration and documentation (no resources)
+- `dynamodb.tf`: All DynamoDB tables with intentional misconfigurations
+- `iam.tf`: IAM roles and policies with overly broad permissions
+- `lambda.tf`: All 11 Lambda functions with varying resource allocations
+- `api_gateway.tf`: API Gateway with no authentication (intentional vulnerability)
+- `lambda_permissions.tf`: Integration permissions between API Gateway and Lambda
+- `cloudwatch.tf`: Log groups with inconsistent retention policies
+
+## 🔍 Security Analysis Workflow
 
 1. **Deploy the Infrastructure**: Use the deployment script or Terraform to deploy the intentionally vulnerable infrastructure
 2. **Review Security Requirements**: Examine `SECURITY_REQUIREMENTS.md` for comprehensive security standards
@@ -300,4 +334,47 @@ cd infrastructure
 terraform destroy -var="environment=demo" -var="aws_region=us-east-1"
 ```
 
-This represents a realistic enterprise scenario where rapid feature development has created a security and operational nightmare requiring systematic remediation using AWS security best practices and official documentation.
+## 📚 Documentation
+
+Comprehensive documentation is available:
+
+- **[ARCHITECTURE_RUNBOOK.md](ARCHITECTURE_RUNBOOK.md)** - Detailed architecture with vulnerability explanations
+- **[PRODUCTION_ARCHITECTURE_RUNBOOK.md](PRODUCTION_ARCHITECTURE_RUNBOOK.md)** - Production-style runbook for security agent analysis
+- **[SECURITY_REQUIREMENTS.md](SECURITY_REQUIREMENTS.md)** - 100+ security requirements across 7 categories
+- **[CURRENT_IMPLEMENTATION.md](CURRENT_IMPLEMENTATION.md)** - Current security posture analysis
+- **[TERRAFORM_REFACTORING_SUMMARY.md](TERRAFORM_REFACTORING_SUMMARY.md)** - Infrastructure refactoring details
+- **[GITHUB_SETUP.md](GITHUB_SETUP.md)** - GitHub repository setup guide
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+### Ways to Contribute
+
+- 🐛 Report documentation issues
+- 💡 Suggest additional security vulnerabilities to demonstrate
+- 📖 Improve documentation and examples
+- 🧪 Add testing scenarios
+- ✨ Enhance deployment automation
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**Disclaimer**: This software contains intentional security vulnerabilities for educational purposes only. The authors are not responsible for any misuse or damage caused by this software.
+
+## 🌟 Acknowledgments
+
+- AWS Security Best Practices Documentation
+- AWS Well-Architected Framework
+- Terraform Best Practices
+- Open Source Security Community
+
+## 📧 Contact
+
+For questions, suggestions, or discussions about this project, please open an issue on GitHub.
+
+---
+
+**⚠️ Remember**: This represents a realistic enterprise scenario where rapid feature development has created a security and operational nightmare requiring systematic remediation using AWS security best practices and official documentation. Never use this code in production!
